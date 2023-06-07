@@ -1,20 +1,21 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from 'react';
+import { ImageBackground, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View className='container h-full justify-center items-center'>
+      <ImageBackground source={require('./assets/imgs/spider-miles.jpg')} className='h-full w-full'>
+        <Text className='my-20 text-xl font-semibold text-red-500 border rounded-md bg-slate-50 p-2'> Spider-man: Across the spider-verse</Text>
+
+
+      </ImageBackground>
+      <LinearGradient
+        colors={['#4c669f', '#3b5998', '#192f6a']}
+      >
+        <Text >Sign in with Facebook</Text>
+      </LinearGradient>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
