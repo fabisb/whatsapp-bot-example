@@ -8,7 +8,7 @@ export default function App() {
     <View className='container h-full justify-center items-center'>
       <ImageBackground source={require('./assets/imgs/spider-miles.jpg')} className='h-full w-full'>
         <Text className='my-20 text-xl font-semibold text-red-500 border rounded-md bg-slate-50 p-2'> Spider-man: Across the spider-verse</Text>
-
+h
 
       </ImageBackground>
       <LinearGradient
