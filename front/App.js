@@ -74,8 +74,9 @@ export default function App() {
                 </Text>
               </View>
             </View>
-
+            
             <View
+              //onPress={()=> }
               className=' bg-white my-1 rounded-xl w-full max-w-xs'
               style={[
                 {
