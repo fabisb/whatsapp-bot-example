@@ -19,7 +19,7 @@ export default function App() {
       <View className='container justify-center items-center'>
         <ImageBackground source={require('./assets/imgs/spider-miles.jpg')} className='h-full w-full justify-center items-center'>
           <Text className='mb-4 text-xl font-semibold text-red-500 border rounded-md bg-slate-50 p-2'> Spider-man: Across the spider-verse</Text>
-          <ScrollView>
+          <ScrollView horizontal={true}>
 
             <View
               className=' bg-white rounded-xl w-full max-w-xs'

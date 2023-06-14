@@ -22,13 +22,22 @@ client.on('ready', () => {
     console.log('Client is ready!');
 });
 
+client.on('message_create', async message => {
+    console.log(message)
+    const telefono = await message.getContact()
+    const nombre = await telefono.pushname
+    console.log(nombre)
+    if (message.body.toLocaleLowerCase() == 'hola') {
+        message.reply('Hola ' + nombre + ' tu numero es: ' + telefono.number);
+    }
+});
 client.on('message', async message => {
     console.log(message)
-    const nombre = await message.notifyName
     const telefono = await message.getContact()
-     console.log(telefono)
+    const nombre = await telefono.pushname
+    console.log(nombre)
     if (message.body.toLocaleLowerCase() == 'hola') {
-        message.reply('Hola ' + nombre);
+        message.reply('Hola ' + nombre + ' tu numero es: ' + telefono.number);
     }
 });
 
