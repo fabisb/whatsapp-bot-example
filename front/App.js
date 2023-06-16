@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  
 } from "react-native";
-import { Button } from "@rneui/themed";
+import { Button, Input } from "@rneui/themed";
 import { styles } from "./components/styles/safeArea";
 import { useState } from "react";
 import { Picker } from "@react-native-picker/picker";
@@ -185,6 +186,7 @@ export default function App() {
               <View>
                 <Text className="text-base my-1">Seleccionado: {char}</Text>
               </View>
+              <Input placeholder="Opiniones de la pelicula"></Input>
               <Button
                 title="Enviar Encuesta"
                 loading={false}
