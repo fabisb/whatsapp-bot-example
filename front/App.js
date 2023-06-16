@@ -170,8 +170,8 @@ export default function App() {
                 </View>
               </TouchableOpacity>
             </ScrollView>
-            <Text className="text-lg text-gray-800">ENCUESTA</Text>
-            <Text className="text-base">¿Cual es tu personaje favorito?</Text>
+            <Text className="text-lg text-gray-500 ">ENCUESTA</Text>
+            <Text className="text-base text-gray-500">¿Cual es tu personaje favorito?</Text>
             <View className="my-1 w-3/5">
               <View className="bg-slate-300 border-2 border-red-600 rounded-md">
                 <Picker
