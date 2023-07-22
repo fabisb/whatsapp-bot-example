@@ -1,32 +1,22 @@
 import {
-  ImageBackground,
   Text,
   View,
-  Image,
   ScrollView,
   SafeAreaView,
-  TouchableOpacity,
   Alert,
-  Linking,
   Dimensions,
   StatusBar,
 } from "react-native";
-import { Button, Input } from "@rneui/themed";
+import { Button } from "@rneui/themed";
 import { styles } from "./components/styles/safeArea";
-import { useState, ChangeEvent, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
-import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart,
-  ContributionGraph,
-  StackedBarChart,
-} from "react-native-chart-kit";
+import { PieChart } from "react-native-chart-kit";
 import { chartConfig } from "./components/styles/Chart/chartConfig";
-import { color } from "@rneui/base";
 import Dialog from "react-native-dialog";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Print from "expo-print";
+import { shareAsync } from "expo-sharing";
 
 try {
   StatusBar.setHidden(true);
@@ -37,25 +27,47 @@ try {
 
 export default function App() {
   const screenWidth = Dimensions.get("window").width;
+  const [selectedPrinter, setSelectedPrinter] = useState();
+
   const [char, setChar] = useState("");
   const [monto, setMonto] = useState(0);
+  const [celdas, setCeldas] = useState([]);
+  const [ultimoGanador, setUltimoGanador] = useState("");
+  const [datos, setDatos] = useState([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const getdata = await getData("aportes");
+      if (getdata) {
+        setDatos(getdata);
+        setAporte(getdata);
+      }
+      const ganadorData = await getData("ganador");
+      if (ganadorData) {
+        console.log(
+          "🚀 ~ file: App.js:47 ~ fetchData ~ ganadorData:",
+          ganadorData
+        );
+        setUltimoGanador(ganadorData);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const agregarCelda = (nombre, monto) => {
+    const fecha = new Date().toLocaleString();
+    console.log("🚀 ~ file: App.js:175 ~ agregarCelda ~ fecha:", fecha);
+    celdas.push(`
+    <tr>
+    <td>${nombre}</td>
+    <td>${fecha}</td>
+    <td>${monto}</td>
+  </tr>
+  `);
+    console.log("🚀 ~ file: App.js:165 ~ agregarCelda ~ celdas:", celdas);
+  };
   const [visible, setVisible] = useState(false);
-  const [aporte, setAporte] = useState([
-    {
-      name: "Fabian Silva",
-      montoAporte: 100,
-      color: generateRandomColor(),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-    {
-      name: "Stephany Arambulo",
-      montoAporte: 70,
-      color: generateRandomColor(),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-  ]);
+  const [aporte, setAporte] = useState([]);
   /*
   const [dataAportes, setDataAportes] = useState(
     async () => await getData("aportas")
@@ -81,6 +93,144 @@ export default function App() {
     console.log(error);
   }
   */
+
+  const print = async () => {
+    // On iOS/android prints the given html. On web prints the HTML from the current page.
+    await Print.printAsync({
+      html,
+      printerUrl: selectedPrinter?.url, // iOS only
+    });
+  };
+
+  const printToFile = async () => {
+    // On iOS/android prints the given html. On web prints the HTML from the current page.
+    let cadenaCeldas = "";
+    let totalMonto = 0;
+    celdas.forEach((celda) => (cadenaCeldas += celda));
+    aporte.forEach((montoaporte) => (totalMonto += montoaporte.montoAporte));
+    console.log(
+      "🚀 ~ file: App.js:221 ~ printToFile ~ cadenaCeldas:",
+      cadenaCeldas
+    );
+    if (cadenaCeldas === "") {
+      return Alert.alert(
+        "No se han encontrado contribuciones",
+        "Ingrese una contribucion e intente de nuevo"
+      );
+    }
+    const htmlApp = `
+    <html>
+    <head>
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+      />
+      <style>
+        html,
+        body {
+          height: 100%;
+        }
+  
+        body {
+          margin: 0;
+          background: linear-gradient(45deg, #49a09d, #5f2c82);
+          font-family: sans-serif;
+        }
+  
+        .container {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+  
+        table {
+          border-collapse: collapse;
+          overflow: hidden;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+  
+        th,
+        td {
+          padding: 15px;
+          background-color: rgba(255, 255, 255, 0.2);
+          color: #fff;
+        }
+  
+        th {
+          text-align: left;
+        }
+  
+        thead {
+          th {
+            background-color: #55608f;
+          }
+        }
+  
+        tbody {
+          tr {
+            &:hover {
+              background-color: rgba(255, 255, 255, 0.3);
+            }
+          }
+          td {
+            position: relative;
+            &:hover {
+              &:before {
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: -9999px;
+                bottom: -9999px;
+                background-color: rgba(255, 255, 255, 0.2);
+                z-index: -1;
+              }
+            }
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>REGISTRO DE APORTE</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Fecha</th>
+              <th>Cantidad a aportar</th>
+            </tr>
+          </thead>
+          <tbody>
+          ${cadenaCeldas}
+          </tbody>
+          <tfoot>
+            <td>TOTAL APORTACION:</td>
+            <td></td>
+            <td>
+              <p
+                style="font-weight: bolder !important; text-decoration: underline"
+              >
+              ${totalMonto}
+              </p>
+            </td>
+          </tfoot>
+        </table>
+      </div>
+    </body>
+  </html>
+    `;
+    console.log("htmlApp: ", htmlApp);
+    const { uri } = await Print.printToFileAsync({ html: htmlApp });
+    console.log("File has been saved to:", uri);
+    await shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
+  };
+
+  const selectPrinter = async () => {
+    const printer = await Print.selectPrinterAsync(); // iOS only
+    setSelectedPrinter(printer);
+  };
 
   const storeData = async (name, value) => {
     if (name == "" || value == "") {
@@ -116,9 +266,46 @@ export default function App() {
     let randColor = randomNumber.padStart(6, 0);
     return `#${randColor.toUpperCase()}`;
   }
+
+  const seleccionarGanador = async () => {
+    if (aporte.length == 0) {
+      return Alert.alert(
+        "No se han encontrado participantes",
+        "No es posible seleccionar un ganador"
+      );
+    }
+    console.log("🚀 ~ file: App.js:253 ~ seleccionarGanador ~ datos:", datos);
+    const maxVal = aporte.length;
+    let randomNumber = Math.random() * maxVal;
+    randomNumber = Math.floor(randomNumber);
+    console.log(
+      "🚀 ~ file: App.js:253 ~ seleccionarGanador ~ randomNumber:",
+      randomNumber
+    );
+    console.log(aporte[randomNumber]);
+    Alert.alert(
+      "GANADOR SELECCIONADO",
+      `El ganador del sorteo de los empleados de la empresa Polar es: ${aporte[randomNumber].name}`
+    );
+    setAporte([]);
+    setCeldas([]);
+    setUltimoGanador(aporte[randomNumber].name);
+    storeData("ganador", aporte[randomNumber].name);
+    removeValue("aportes");
+  };
+  const removeValue = async (value) => {
+    try {
+      await AsyncStorage.removeItem(value);
+    } catch (e) {
+      // remove error
+      console.log(e);
+    }
+
+    console.log(value, "Borrado.");
+  };
   const handleBtn = async () => {
     try {
-      if (isNaN(monto) || char == "") {
+      if (isNaN(monto) || char == "" || monto == 0) {
         console.log(monto);
         console.log(char);
         return Alert.alert(
@@ -151,18 +338,16 @@ export default function App() {
         });
       }
       //console.log("🚀 ~ file: App.js:140 ~ handleBtn ~ aporte:", aporte);
-      /*
+
       await storeData("aportes", aporte);
-      console.log(
-        "🚀 ~ file: App.js:103 ~ handleBtn ~ getData('aportes'):",
-        await getData("aportes")
-      );
-      */
+
+      agregarCelda(char, monto);
       Alert.alert(
         "Aportacion exitosa",
         "Su aportacion ya fue realizada y se guardará en los registros de la empresa"
       );
       setChar("");
+      setMonto(0);
     } catch (error) {
       console.log(error);
     }
@@ -182,6 +367,9 @@ export default function App() {
             )
           }
         ></Button>
+        {ultimoGanador !== "" && (
+          <Text className="text-2xl px-1">Ultimo ganador: {ultimoGanador}</Text>
+        )}
         <Text className="text-xl px-1">Empleado que desea aportar</Text>
         <View className="bg-slate-300 mx-1 my-1 border-2">
           <Picker
@@ -196,6 +384,7 @@ export default function App() {
             <Picker.Item label="Elvis" value="Elvis Fuenmayor" />
           </Picker>
         </View>
+
         <Text className={"text-lg px-2"}>
           Distribucion de contribucion de empleados
         </Text>
@@ -211,9 +400,34 @@ export default function App() {
           //absolute
           avoidFalseZero
         />
+        <View className={"m-1"}>
+          <Button color={"red"} title="Generar PDF" onPress={printToFile} />
+          {Platform.OS === "ios" && (
+            <>
+              <View style={styles.spacer} />
+              <Button title="Select printer" onPress={selectPrinter} />
+              <View style={styles.spacer} />
+              {selectedPrinter ? (
+                <Text
+                  style={styles.printer}
+                >{`Selected printer: ${selectedPrinter.name}`}</Text>
+              ) : undefined}
+            </>
+          )}
+        </View>
+        <View className={"m-1"}>
+          <Button
+            color={"blue"}
+            title="Seleccionar ganador"
+            onPress={seleccionarGanador}
+          />
+        </View>
         <Text
-          onPress={() => Alert.alert("Aplicaciones Moviles C-913 :)")}
-          className=" text-xl font-semibold mb-5 border rounded-md bg-slate-50 p-2"
+          onPress={() => {
+            console.log(datos);
+            Alert.alert("Aplicaciones Moviles C-913 :)");
+          }}
+          className=" text-xl font-semibold mb-5 m-1 border rounded-md bg-slate-50 p-2"
         >
           Fabian Silva V-28.146.771
         </Text>
@@ -237,43 +451,3 @@ export default function App() {
     </SafeAreaView>
   );
 }
-
-/*
-  const data = [
-    {
-      name: "Seoul",
-      population: 21500000,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-    {
-      name: "Toronto",
-      population: 2800000,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-    {
-      name: "Beijing",
-      population: 527612,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-    {
-      name: "New York",
-      population: 8538000,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-    {
-      name: "Moscow",
-      population: 11920000,
-      color: "#" + Math.floor(Math.random() * 16777215).toString(16),
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 15,
-    },
-  ];
-*/
