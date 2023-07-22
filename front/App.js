@@ -44,26 +44,31 @@ export default function App() {
       }
       const ganadorData = await getData("ganador");
       if (ganadorData) {
-        console.log(
-          "🚀 ~ file: App.js:47 ~ fetchData ~ ganadorData:",
-          ganadorData
-        );
         setUltimoGanador(ganadorData);
+      }
+      const celdasData = await getData("celdas");
+      if (celdasData) {
+        console.log(
+          "🚀 ~ file: App.js:50 ~ fetchData ~ celdasData:",
+          celdasData
+        );
+        setCeldas(celdasData);
       }
     }
     fetchData();
   }, []);
-
   const agregarCelda = (nombre, monto) => {
     const fecha = new Date().toLocaleString();
     console.log("🚀 ~ file: App.js:175 ~ agregarCelda ~ fecha:", fecha);
-    celdas.push(`
+    const texto = `
     <tr>
     <td>${nombre}</td>
     <td>${fecha}</td>
     <td>${monto}</td>
   </tr>
-  `);
+  `;
+    celdas.push(texto);
+    storeData("celdas", celdas);
     console.log("🚀 ~ file: App.js:165 ~ agregarCelda ~ celdas:", celdas);
   };
   const [visible, setVisible] = useState(false);
@@ -292,6 +297,7 @@ export default function App() {
     setUltimoGanador(aporte[randomNumber].name);
     storeData("ganador", aporte[randomNumber].name);
     removeValue("aportes");
+    removeValue("celdas");
   };
   const removeValue = async (value) => {
     try {
@@ -424,7 +430,6 @@ export default function App() {
         </View>
         <Text
           onPress={() => {
-            console.log(datos);
             Alert.alert("Aplicaciones Moviles C-913 :)");
           }}
           className=" text-xl font-semibold mb-5 m-1 border rounded-md bg-slate-50 p-2"
