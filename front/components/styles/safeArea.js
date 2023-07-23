@@ -6,10 +6,4 @@ export const styles = StyleSheet.create({
   pagerView: {
     flex: 1,
   },
-  dialog: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
 });
